@@ -30,7 +30,6 @@ def check_scp_config():
 def check_service_status(service_type):
     """Verifica el estado de los servicios"""
     if service_type == "ssh":
-        # Para SSH solo verificamos si el servicio está activo
         try:
             result = subprocess.run(['systemctl', 'is-active', 'ssh'], 
                                 capture_output=True, text=True)
@@ -38,9 +37,8 @@ def check_service_status(service_type):
         except:
             return False
     else:  # scp
-        # Para SCP verificamos si el servicio SSH está activo Y si SCP está habilitado en la configuración
         return check_service_status("ssh") and check_scp_config()
-    
+
 def sync_time():
     """Sincroniza la hora del sistema"""
     current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -53,24 +51,39 @@ def sync_time():
         print(f"Error synchronizing time: {e}")
     return False
 
-def toggle_service(service_type):
-    current_dir = os.path.dirname(os.path.abspath(__file__))
+def show_processing_message():
+    """Muestra el mensaje de procesamiento"""
+    gr.draw_clear()
+    gr.draw_log("Processing...", fill=gr.colorBlue, outline=gr.colorBlueD1)
+    gr.draw_paint()
+
+def execute_script(script_path):
+    """Ejecuta un script y maneja los errores"""
     try:
-        if service_type == "ssh":
-            script = os.path.join(current_dir, "EnableSSH.sh" if not check_service_status("ssh") else "DisableSSH.sh")
-        elif service_type == "scp":
-            if check_service_status("ssh"):
-                script = os.path.join(current_dir, "EnableSCP.sh" if not check_scp_config() else "DisableSCP.sh")
-            else:
-                script = os.path.join(current_dir, "EnableSCP.sh")
-        elif service_type == "sync":
-            script = os.path.join(current_dir, "SyncTime.sh")
-                
-        if os.path.exists(script):
-            subprocess.run(['bash', script], check=True)
-            time.sleep(2)
+        show_processing_message()
+        subprocess.run(['bash', script_path], check=True)
+        time.sleep(1)  # Dar tiempo para ver el mensaje de éxito
+        return True
     except subprocess.CalledProcessError as e:
         print(f"Error executing script: {e}")
+        return False
+
+def toggle_service(service_type):
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    script = None
+
+    if service_type == "ssh":
+        script = os.path.join(current_dir, "EnableSSH.sh" if not check_service_status("ssh") else "DisableSSH.sh")
+    elif service_type == "scp":
+        if check_service_status("ssh"):
+            script = os.path.join(current_dir, "EnableSCP.sh" if not check_scp_config() else "DisableSCP.sh")
+        else:
+            script = os.path.join(current_dir, "EnableSCP.sh")
+    elif service_type == "sync":
+        script = os.path.join(current_dir, "SyncTime.sh")
+            
+    if script and os.path.exists(script):
+        execute_script(script)
 
 def start():
     print(f"Starting {app_name}...")
@@ -95,7 +108,6 @@ def load_main_menu():
     scp_status = check_service_status("scp")
     options = []
     
-    # Siempre mostramos ambas opciones
     options.append(("Disable SSH" if ssh_status else "Enable SSH", "ssh"))
     options.append(("Disable SCP" if scp_status else "Enable SCP", "scp"))
     options.append(("Sync System Time", "sync"))
@@ -110,10 +122,6 @@ def load_main_menu():
     elif input.key("A"):
         service_type = options[selected_position][1]
         toggle_service(service_type)
-        gr.draw_clear()
-        gr.draw_log("Processing...", fill=gr.colorBlue, outline=gr.colorBlueD1)
-        gr.draw_paint()
-        time.sleep(1)
 
     gr.draw_clear()
 
@@ -132,7 +140,7 @@ def load_main_menu():
         row_list(text, (20, 150 + (i * 50)), 600, i == selected_position)
 
     # Draw buttons
-    button_circle((133, 450), "M", "Exit")
+    button_circle((133, 450), "F", "Exit")
     button_circle((320, 450), "A", "Select")
 
     gr.draw_paint()

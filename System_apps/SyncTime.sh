@@ -3,15 +3,12 @@
 appdir=$(dirname -- "$0")
 log_file="${appdir}/log.txt"
 
-# Instalar dependencias necesarias
-echo "Installing required packages..." >> "$log_file"
+echo "Installing required packages..."
 apt-get update -y &>> "$log_file"
-apt-get install -y ntpdate curl tzdata &>> "$log_file"
+apt-get install -y ntpdate curl tzdata
 
-# Establecer zona horaria por defecto a Asia/Shanghai si no se puede detectar
 DEFAULT_TIMEZONE="America/Chicago"
 
-# Intentar obtener la zona horaria
 if command -v curl &> /dev/null; then
     timezone=$(curl -s http://ip-api.com/line?fields=timezone)
 else
@@ -22,18 +19,15 @@ if [ -z "$timezone" ]; then
     timezone=$DEFAULT_TIMEZONE
 fi
 
-# Establecer la zona horaria
-echo "Setting timezone to $timezone" >> "$log_file"
-timedatectl set-timezone "$timezone" &>> "$log_file"
+echo "Setting timezone to $timezone"
+timedatectl set-timezone "$timezone"
 
-# Sincronizar la hora con servidores NTP de China
-echo "Synchronizing time..." >> "$log_file"
-ntpdate -u ntp.aliyun.com &>> "$log_file" || \
-ntpdate -u ntp1.aliyun.com &>> "$log_file" || \
-ntpdate -u ntp2.aliyun.com &>> "$log_file" || \
-ntpdate -u ntp.ntsc.ac.cn &>> "$log_file"
+echo "Synchronizing time..."
+ntpdate -u ntp.aliyun.com || \
+ntpdate -u ntp1.aliyun.com || \
+ntpdate -u ntp2.aliyun.com || \
+ntpdate -u ntp.ntsc.ac.cn
 
-# Actualizar el reloj del hardware
 hwclock --systohc
 
 echo "Time synchronized successfully" >> "$log_file"
