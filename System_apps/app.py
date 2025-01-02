@@ -3,6 +3,7 @@ import os
 import subprocess
 import sys
 import time
+import json
 from pathlib import Path
 from datetime import datetime
 
@@ -15,8 +16,45 @@ import input
 
 current_window = "main"
 selected_position = 0
-max_elem = 2
+menu_len = 7
 app_name = "SystemApps"
+
+def get_options():
+    ssh_status = check_service_status("ssh")
+    scp_status = check_service_status("scp")
+    options = []
+    
+    options.append(("Disable SSH" if ssh_status else "Enable SSH", "ssh"))
+    options.append(("Disable SCP" if scp_status else "Enable SCP", "scp"))
+    options.append(("Sync System Time", "sync"))
+    options.append(("Show RAM Status", "ram"))
+    options.append(("Clean RAM", "clean_ram"))
+    options.append(("Clean Packages", "clean_pkg"))
+    options.append(("Exit", "exit"))
+
+    return options, ssh_status, scp_status
+
+def get_ram_info():
+    """Get RAM usage information"""
+    try:
+        script_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "GetRAM.sh")
+        subprocess.run(['bash', script_path], check=True)
+        
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "log.txt"), 'r') as f:
+            ram_info = json.loads(f.read().strip())
+        return ram_info
+    except Exception as e:
+        print(f"Error getting RAM info: {e}")
+        return {"total": 0, "used": 0, "available": 0, "usage_percent": 0}
+    
+def show_ram_status():
+    """Shows RAM status in a message box"""
+    ram_info = get_ram_info()
+    ram_text = f"RAM Usage: {ram_info['usage_percent']}%\nUsed: {ram_info['used']}MB / {ram_info['total']}MB\nAvailable: {ram_info['available']}MB"
+    gr.draw_clear()
+    gr.draw_log(ram_text, fill=gr.colorBlue, outline=gr.colorBlueD1)
+    gr.draw_paint()
+    time.sleep(2)
 
 def check_scp_config():
     """Verifica si la configuración actual tiene SCP habilitado"""
@@ -39,30 +77,18 @@ def check_service_status(service_type):
     else:  # scp
         return check_service_status("ssh") and check_scp_config()
 
-def sync_time():
-    """Sincroniza la hora del sistema"""
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    script = os.path.join(current_dir, "SyncTime.sh")
-    try:
-        if os.path.exists(script):
-            subprocess.run(['bash', script], check=True)
-            return True
-    except subprocess.CalledProcessError as e:
-        print(f"Error synchronizing time: {e}")
-    return False
-
-def show_processing_message():
+def show_message(msg='Processing...', colorFill=gr.colorBlue):
     """Muestra el mensaje de procesamiento"""
     gr.draw_clear()
-    gr.draw_log("Processing...", fill=gr.colorBlue, outline=gr.colorBlueD1)
+    gr.draw_log(msg, fill=colorFill, outline=gr.colorBlueD1)
     gr.draw_paint()
 
 def execute_script(script_path):
-    """Ejecuta un script y maneja los errores"""
     try:
-        show_processing_message()
+        show_message('Processing...')
         subprocess.run(['bash', script_path], check=True)
-        time.sleep(1)  # Dar tiempo para ver el mensaje de éxito
+        show_message('Success!', gr.colorGreen)
+        time.sleep(1)
         return True
     except subprocess.CalledProcessError as e:
         print(f"Error executing script: {e}")
@@ -81,6 +107,15 @@ def toggle_service(service_type):
             script = os.path.join(current_dir, "EnableSCP.sh")
     elif service_type == "sync":
         script = os.path.join(current_dir, "SyncTime.sh")
+    elif service_type == "ram":
+        show_ram_status()
+        return
+    elif service_type == "clean_ram":
+        script = os.path.join(current_dir, "CleanRAM.sh")
+    elif service_type == "clean_pkg":
+        script = os.path.join(current_dir, "CleanPKG.sh")
+    elif service_type == "exit":
+        sys.exit()
             
     if script and os.path.exists(script):
         execute_script(script)
@@ -101,24 +136,23 @@ def update():
 
     load_main_menu()
 
-def load_main_menu():
+def move_cursor_dy(auto_move: bool = False):
     global selected_position
+    if auto_move or input.value == 1:
+        if selected_position < menu_len - 1:
+            selected_position += 1
+    elif input.value == -1:
+        if selected_position > 0:
+            selected_position -= 1
 
-    ssh_status = check_service_status("ssh")
-    scp_status = check_service_status("scp")
-    options = []
+def auto_move_cursor():
+    move_cursor_dy(True)
+
+def load_main_menu():
+    options, ssh_status, scp_status = get_options()
     
-    options.append(("Disable SSH" if ssh_status else "Enable SSH", "ssh"))
-    options.append(("Disable SCP" if scp_status else "Enable SCP", "scp"))
-    options.append(("Sync System Time", "sync"))
-
     if input.key("DY"):
-        if input.value == 1:
-            if selected_position < len(options) - 1:
-                selected_position += 1
-        elif input.value == -1:
-            if selected_position > 0:
-                selected_position -= 1
+        move_cursor_dy(False)
     elif input.key("A"):
         service_type = options[selected_position][1]
         toggle_service(service_type)

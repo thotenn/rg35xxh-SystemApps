@@ -19,6 +19,7 @@ colorBlueD1 = "#7f4f00"
 colorGray = "#292929"
 colorGrayL1 = "#383838"
 colorGrayD2 = "#141414"
+colorGreen = "#008f39"
 
 activeImage: Image.Image
 activeDraw: ImageDraw.ImageDraw
