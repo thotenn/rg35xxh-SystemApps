@@ -18,16 +18,20 @@ current_window = "main"
 selected_position = 0
 scroll_offset = 0  # Track scroll position
 visible_items = 7  # Number of items visible at once
-menu_len = 7
+menu_len = 10
 app_name = "SystemApps"
 
 def get_options():
     ssh_status = check_service_status("ssh")
     scp_status = check_service_status("scp")
+    battery_percentage = get_battery_percentage()
     options = []
     
     options.append(("Disable SSH" if ssh_status else "Enable SSH", "ssh"))
     options.append(("Disable SCP" if scp_status else "Enable SCP", "scp"))
+    options.append(("Show Battery Level", "battery"))
+    options.append(("Show Battery Details", "battery_info"))
+    options.append(("Show Local IP", "ip"))
     options.append(("Sync System Time", "sync"))
     options.append(("Show RAM Status", "ram"))
     options.append(("Clean RAM", "clean_ram"))
@@ -35,6 +39,43 @@ def get_options():
     options.append(("Exit", "exit"))
 
     return options, ssh_status, scp_status
+
+def get_battery_percentage():
+    try:
+        with open('/sys/class/power_supply/axp2202-battery/capacity', 'r') as f:
+            return f"{f.read().strip()}%"
+    except:
+        return "N/A"
+
+def get_battery_info():
+    try:
+        info = {}
+        files = ['status', 'capacity', 'voltage_now', 'current_now', 'health']
+        
+        for file in files:
+            try:
+                with open(f'/sys/class/power_supply/axp2202-battery/{file}', 'r') as f:
+                    info[file] = f.read().strip()
+            except:
+                info[file] = 'N/A'
+        
+        voltage = 'N/A' if info['voltage_now'] == 'N/A' else f"{int(info['voltage_now'])/1000000:.2f}V"
+        current = 'N/A' if info['current_now'] == 'N/A' else f"{int(info['current_now'])/1000000:.2f}A"
+        
+        return (f"Status: {info['status']}\n"
+                f"Battery Level: {info['capacity']}%\n"
+                f"Voltage: {voltage}\n"
+                f"Current: {current}\n"
+                f"Health: {info['health']}")
+    except Exception as e:
+        return f"Battery information not available"
+
+def get_local_ip():
+    try:
+        result = subprocess.run(['hostname', '-I'], capture_output=True, text=True)
+        return result.stdout.strip().split()[0]
+    except:
+        return "IP not available"
 
 def get_ram_info():
     """Get RAM usage information"""
@@ -54,9 +95,10 @@ def show_ram_status():
     ram_info = get_ram_info()
     ram_text = f"RAM Usage: {ram_info['usage_percent']}%\nUsed: {ram_info['used']}MB / {ram_info['total']}MB\nAvailable: {ram_info['available']}MB"
     gr.draw_clear()
-    gr.draw_log(ram_text, fill=gr.colorBlue, outline=gr.colorBlueD1)
+    gr.draw_log(ram_text, fill=gr.colorBlue, outline=gr.colorBlueD1, height=120, centered=False)
     gr.draw_paint()
     time.sleep(3)
+    return
 
 def check_scp_config():
     """Verifica si la configuración actual tiene SCP habilitado"""
@@ -200,6 +242,27 @@ def toggle_service(service_type):
             script = os.path.join(current_dir, "EnableSCP.sh" if not check_scp_config() else "DisableSCP.sh")
         else:
             script = os.path.join(current_dir, "EnableSCP.sh")
+    elif service_type == "battery":
+        percentage = get_battery_percentage()
+        gr.draw_clear()
+        gr.draw_log(f"Battery Level: {percentage}", fill=gr.colorBlue, outline=gr.colorBlueD1)
+        gr.draw_paint()
+        time.sleep(3)
+        return
+    elif service_type == "battery_info":
+        battery_info = get_battery_info()
+        gr.draw_clear()
+        gr.draw_log(battery_info, fill=gr.colorBlue, outline=gr.colorBlueD1, height=150, centered=False)
+        gr.draw_paint()
+        time.sleep(5)
+        return
+    elif service_type == "ip":
+        local_ip = get_local_ip()
+        gr.draw_clear()
+        gr.draw_log(f"Local IP: {local_ip}", fill=gr.colorBlue, outline=gr.colorBlueD1)
+        gr.draw_paint()
+        time.sleep(3)
+        return
     elif service_type == "sync":
         script = os.path.join(current_dir, "SyncTime.sh")
     elif service_type == "ram":

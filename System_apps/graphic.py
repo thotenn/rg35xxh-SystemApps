@@ -92,17 +92,21 @@ def draw_circle(position, radius, fill=None, outline="white"):
     )
 
 
-def draw_log(text, fill="Black", outline="black", width=500):
+def draw_log(text, fill="Black", outline="black", width=500, height=80, centered=True):
     # Center the rectangle horizontally
     x = (screen_width - width) / 2
     # Center the rectangle vertically
-    y = (screen_height - 80) / 2  # 80 is the height of the rectangle
-    draw_rectangle_r([x, y, x + width, y + 80], 5, fill=fill, outline=outline)
+    y = (screen_height - height) / 2  # 80 is the height of the rectangle
+    draw_rectangle_r([x, y, x + width, y + height], 5, fill=fill, outline=outline)
 
     # Center the text within the rectangle
-    text_x = x + width / 2
-    text_y = y + 40  # Vertically center within the 80px height
-    draw_text((text_x, text_y), text, anchor="mm")  # Use middle-middle anchor
+    lines = text.split('\n')
+    text_x = x + (width / 2 if centered else 20)
+    line_height = 25  # Line height
+    
+    for i, line in enumerate(lines):
+        text_y = y + (height / 2 if centered else 20 + (i * line_height))
+        draw_text((text_x, text_y), line, anchor=("mm" if centered else "lt"))
 
 
 draw_start()
