@@ -1,7 +1,7 @@
 #!/bin/bash
 
 appdir=$(dirname -- "$0")
-log_file="${appdir}/ssh-manager.log"
+log_file="${appdir}/../logs/ssh-manager.log"
 
 # Restore original config if exists
 if [ -f "/etc/ssh/sshd_config.backup" ]; then

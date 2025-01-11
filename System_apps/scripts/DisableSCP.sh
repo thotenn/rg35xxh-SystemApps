@@ -1,7 +1,7 @@
 #!/bin/bash
 
 appdir=$(dirname -- "$0")
-log_file="${appdir}/log.txt"
+log_file="${appdir}/../log.txt"
 
 # Configurar SSH sin soporte SCP
 cat > /etc/ssh/sshd_config << EOF

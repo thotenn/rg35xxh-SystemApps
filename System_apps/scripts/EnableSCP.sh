@@ -1,7 +1,7 @@
 #!/bin/bash
 
 appdir=$(dirname -- "$0")
-log_file="${appdir}/log.txt"
+log_file="${appdir}/../log.txt"
 
 # Backup configuración actual si existe
 if [ -f /etc/ssh/sshd_config ]; then

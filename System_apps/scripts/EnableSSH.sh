@@ -1,7 +1,7 @@
 #!/bin/bash
 
 appdir=$(dirname -- "$0")
-log_file="${appdir}/ssh-manager.log"
+log_file="${appdir}/../logs/ssh-manager.log"
 
 # Install OpenSSH server if it doesn't exist
 if ! systemctl list-units --full --all | grep -Fqi "ssh.service"; then

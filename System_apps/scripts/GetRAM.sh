@@ -1,7 +1,7 @@
 #!/bin/bash
 
 appdir=$(dirname -- "$0")
-log_file="${appdir}/log.txt"
+log_file="${appdir}/../log.txt"
 
 # Get total RAM in MB
 total=$(free -m | awk '/^Mem:/{print $2}')

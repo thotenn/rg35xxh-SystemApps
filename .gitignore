@@ -1,0 +1,16 @@
+# Python virtual environments
+venv/
+.venv/
+env/
+
+# Compiled files
+__pycache__/
+*.py[cod]
+
+# Archivos de configuración
+.env
+*.ini
+
+# Otros
+*.egg-info
+.DS_Store

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Log file setup
-log_file="cleanup.log"
+log_file="${appdir}/../log.txt"
 
 # Clean package cache
 apt-get clean >> "$log_file" 2>&1

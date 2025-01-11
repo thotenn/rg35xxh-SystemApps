@@ -11,8 +11,8 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 if current_dir not in sys.path:
     sys.path.insert(0, current_dir)
 
-import graphic as gr
-import input
+import lib.graphic as gr
+import lib.input as input
 
 current_window = "main"
 selected_position = 0
@@ -20,6 +20,7 @@ scroll_offset = 0  # Track scroll position
 visible_items = 7  # Number of items visible at once
 menu_len = 10
 app_name = "SystemApps"
+script_dir = os.path.join(current_dir, "scripts")
 
 def get_options():
     ssh_status = check_service_status("ssh")
@@ -80,7 +81,7 @@ def get_local_ip():
 def get_ram_info():
     """Get RAM usage information"""
     try:
-        script_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "GetRAM.sh")
+        script_path = os.path.join(script_dir, "GetRAM.sh")
         subprocess.run(['bash', script_path], check=True)
         
         with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "log.txt"), 'r') as f:
@@ -236,12 +237,12 @@ def toggle_service(service_type):
     script = None
 
     if service_type == "ssh":
-        script = os.path.join(current_dir, "EnableSSH.sh" if not check_service_status("ssh") else "DisableSSH.sh")
+        script = os.path.join(script_dir, "EnableSSH.sh" if not check_service_status("ssh") else "DisableSSH.sh")
     elif service_type == "scp":
         if check_service_status("ssh"):
-            script = os.path.join(current_dir, "EnableSCP.sh" if not check_scp_config() else "DisableSCP.sh")
+            script = os.path.join(script_dir, "EnableSCP.sh" if not check_scp_config() else "DisableSCP.sh")
         else:
-            script = os.path.join(current_dir, "EnableSCP.sh")
+            script = os.path.join(script_dir, "EnableSCP.sh")
     elif service_type == "battery":
         percentage = get_battery_percentage()
         gr.draw_clear()
@@ -264,14 +265,14 @@ def toggle_service(service_type):
         time.sleep(3)
         return
     elif service_type == "sync":
-        script = os.path.join(current_dir, "SyncTime.sh")
+        script = os.path.join(script_dir, "SyncTime.sh")
     elif service_type == "ram":
         show_ram_status()
         return
     elif service_type == "clean_ram":
-        script = os.path.join(current_dir, "CleanRAM.sh")
+        script = os.path.join(script_dir, "CleanRAM.sh")
     elif service_type == "clean_pkg":
-        script = os.path.join(current_dir, "CleanPKG.sh")
+        script = os.path.join(script_dir, "CleanPKG.sh")
     elif service_type == "exit":
         sys.exit()
             
