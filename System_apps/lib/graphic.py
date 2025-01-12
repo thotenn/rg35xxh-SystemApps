@@ -109,6 +109,67 @@ def draw_log(text, fill="Black", outline="black", width=500, height=80, centered
         draw_text((text_x, text_y), line, anchor=("mm" if centered else "lt"))
 
 
+def draw_scrollable_text(text, x, y, width, height, scroll_offset=0, fill="Black", outline="black"):
+    """
+    Dibuja texto con capacidad de scroll vertical.
+    
+    Args:
+        text (str): Texto a dibujar
+        x (int): Posición X
+        y (int): Posición Y
+        width (int): Ancho del contenedor
+        height (int): Alto del contenedor
+        scroll_offset (int): Desplazamiento vertical del scroll
+        fill (str): Color de fondo
+        outline (str): Color del borde
+    """
+    # Dibuja el contenedor
+    draw_rectangle_r([x, y, x + width, y + height], 5, fill=fill, outline=outline)
+    
+    # Preparar el texto
+    font_height = 20  # Altura aproximada de la fuente
+    padding = 10  # Padding interno
+    
+    # Dividir el texto en líneas
+    wrapped_lines = []
+    for line in text.split('\n'):
+        # Calcular cuántos caracteres caben en el ancho disponible
+        chars_per_line = (width - (padding * 2)) // 10  # Aproximadamente 10px por caracter
+        # Envolver el texto
+        if len(line) > chars_per_line:
+            while line:
+                if len(line) <= chars_per_line:
+                    wrapped_lines.append(line)
+                    break
+                split_at = line[:chars_per_line].rfind(' ')
+                if split_at == -1:
+                    split_at = chars_per_line
+                wrapped_lines.append(line[:split_at])
+                line = line[split_at:].lstrip()
+        else:
+            wrapped_lines.append(line)
+
+    # Calcular líneas visibles basado en la altura
+    visible_lines = (height - (padding * 2)) // font_height
+    
+    # Aplicar scroll_offset
+    start_line = scroll_offset // font_height
+    end_line = min(start_line + visible_lines, len(wrapped_lines))
+    
+    # Dibujar líneas visibles
+    for i, line in enumerate(wrapped_lines[start_line:end_line]):
+        text_y = y + padding + (i * font_height) - (scroll_offset % font_height)
+        if text_y + font_height > y + height - padding:
+            break
+        draw_text((x + padding, text_y), line)
+    
+    # Dibujar indicadores de scroll si es necesario
+    if start_line > 0:
+        draw_text((x + width // 2, y + padding), "▲", anchor="mm")
+    if end_line < len(wrapped_lines):
+        draw_text((x + width // 2, y + height - padding), "▼", anchor="mm")
+
+
 draw_start()
 screen_reset()
 

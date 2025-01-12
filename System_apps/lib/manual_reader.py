@@ -91,8 +91,26 @@ class ManualReader:
         if not self.in_section or not self.current_section:
             return 0
             
-        # Con draw_log el scroll es manejado internamente
-        return 0
+        content = self.current_manual_data[self.current_section]
+        
+        # Preparar el texto completo
+        display_text = f"{self.current_section}\n\n"
+        for step, description in content.items():
+            description = description.replace('\n', ' ').strip()
+            wrapped_step = textwrap.wrap(step, width=50)
+            wrapped_desc = textwrap.wrap(description, width=50)
+            display_text += "\n".join(wrapped_step) + "\n" + "\n".join(wrapped_desc) + "\n\n"
+        
+        # Calcular altura total del contenido
+        font_height = 20
+        total_lines = len(display_text.split('\n'))
+        total_height = total_lines * font_height
+        
+        # Altura visible del contenedor
+        visible_height = 340 - 20  # height - padding
+        
+        # Máximo scroll permitido
+        return max(0, total_height - visible_height)
 
     def draw_menu(self):
         gr.draw_clear()
@@ -161,7 +179,7 @@ class ManualReader:
         try:
             content = self.current_manual_data[self.current_section]
             
-            # Preparar el contenido con espaciado optimizado
+            # Preparar el contenido
             display_text = f"{self.current_section}\n\n"
             for step, description in content.items():
                 description = description.replace('\n', ' ').strip()
@@ -169,13 +187,16 @@ class ManualReader:
                 wrapped_desc = textwrap.wrap(description, width=50)
                 display_text += "\n".join(wrapped_step) + "\n" + "\n".join(wrapped_desc) + "\n\n"
 
-            gr.draw_log(
+            # Usar la nueva función de scroll
+            gr.draw_scrollable_text(
                 display_text,
-                fill=gr.colorBlue,
-                outline=gr.colorBlueD1,
+                x=20,
+                y=80,
                 width=600,
                 height=340,
-                centered=False
+                scroll_offset=self.content_scroll,
+                fill=gr.colorBlue,
+                outline=gr.colorBlueD1
             )
 
         except Exception as e:
