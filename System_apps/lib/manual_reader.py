@@ -1,6 +1,7 @@
 import json
 import os
 import time
+import textwrap
 import lib.graphic as gr
 import lib.input as input
 
@@ -9,7 +10,7 @@ class ManualReader:
         self.manuals_root = manuals_root
         self.selected_position = 0
         self.scroll_offset = 0
-        self.content_scroll = 0  # Para el scroll del contenido
+        self.content_scroll = 0
         self.visible_items = 7
         self.path_history = []
         self.current_items = []
@@ -90,13 +91,8 @@ class ManualReader:
         if not self.in_section or not self.current_section:
             return 0
             
-        # Estimar el alto del contenido basado en el número de líneas y su alto
-        content = self.current_manual_data[self.current_section]
-        total_lines = sum(2 for step in content.items())  # Título + contenido por cada paso
-        total_height = total_lines * 25  # Aproximadamente 25 píxeles por línea
-        visible_height = 280  # Altura visible del área de contenido
-        
-        return max(0, total_height - visible_height)
+        # Con draw_log el scroll es manejado internamente
+        return 0
 
     def draw_menu(self):
         gr.draw_clear()
@@ -163,51 +159,28 @@ class ManualReader:
             return
 
         try:
-            # Título de la sección
-            gr.draw_text((320, 100), self.current_section, anchor="mm")
-
             content = self.current_manual_data[self.current_section]
             
-            # Preparar el contenido con scroll
-            display_text = ""
+            # Preparar el contenido con espaciado optimizado
+            display_text = f"{self.current_section}\n\n"
             for step, description in content.items():
-                display_text += f"{step}\n{description}\n\n"
+                description = description.replace('\n', ' ').strip()
+                wrapped_step = textwrap.wrap(step, width=50)
+                wrapped_desc = textwrap.wrap(description, width=50)
+                display_text += "\n".join(wrapped_step) + "\n" + "\n".join(wrapped_desc) + "\n\n"
 
-            # Área de contenido con scroll
-            container_height = 280
-            gr.draw_rectangle_r(
-                [20, 120, 620, 120 + container_height],
-                5,
-                fill=gr.colorBlue,
-                outline=gr.colorBlueD1
-            )
-
-            # Definir el área visible para el contenido
-            gr.draw_rectangle_r(
-                [20, 120, 620, 400],  # Área de recorte
-                5,
-                fill=gr.colorBlue,
-                outline=gr.colorBlueD1
-            )
-
-            # Ajustar la posición Y basada en el scroll
-            text_y = 130 - self.content_scroll
-            
-            # Mostrar el contenido
-            gr.draw_text(
-                (30, text_y),
+            gr.draw_log(
                 display_text,
-                fill="white",
-                anchor="lt"
+                fill=gr.colorBlue,
+                outline=gr.colorBlueD1,
+                width=600,
+                height=340,
+                centered=False
             )
 
-            # Indicadores de scroll si es necesario
-            if self.content_scroll > 0:
-                gr.draw_text((320, 120), "▲", anchor="mm")
-            if self.content_scroll < self.get_max_scroll():
-                gr.draw_text((320, 390), "▼", anchor="mm")
         except Exception as e:
             print(f"Error drawing section content: {e}")
+            gr.draw_log(f"Error: {str(e)}", fill=gr.colorBlue, outline=gr.colorBlueD1)
 
     def handle_input(self):
         if input.key("DY"):
