@@ -1,0 +1,17 @@
+{
+    "Connect via USB Receiver": {
+        "Step 1": "Connect the USB receiver to the USB port of the device.",
+        "Step 2": "Press X + Home buttons simultaneously for 2 seconds to turn on the controller.",
+        "Step 3": "The next time you connect, just press the gamepad's HOME button to power on, it will automatically be connected."
+    },
+    "Connect via Bluetooth": {
+        "Step 1": "Press Y + HOME buttons simultaneously for 2 seconds to turn on the controller.",
+        "Step 2": "Turn on Bluetooth on the device and search for the gamepad.",
+        "Step 3": "Select the gamepad to connect."
+    },
+    "Connect to Android": {
+        "Step 1": "Press A + HOME buttons simultaneously for 2 seconds to turn on the controller.",
+        "Step 2": "Turn on Bluetooth on the device and search for the gamepad.",
+        "Step 3": "Select the gamepad to connect."
+    }
+}

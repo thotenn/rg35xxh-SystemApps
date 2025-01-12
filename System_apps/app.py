@@ -17,15 +17,14 @@ import lib.input as input
 current_window = "main"
 selected_position = 0
 scroll_offset = 0  # Track scroll position
-visible_items = 7  # Number of items visible at once
-menu_len = 10
+visible_items = 8  # Number of items visible at once
+menu_len = 11
 app_name = "SystemApps"
 script_dir = os.path.join(current_dir, "scripts")
 
 def get_options():
     ssh_status = check_service_status("ssh")
     scp_status = check_service_status("scp")
-    battery_percentage = get_battery_percentage()
     options = []
     
     options.append(("Disable SSH" if ssh_status else "Enable SSH", "ssh"))
@@ -37,6 +36,7 @@ def get_options():
     options.append(("Show RAM Status", "ram"))
     options.append(("Clean RAM", "clean_ram"))
     options.append(("Clean Packages", "clean_pkg"))
+    options.append(("Manual Reader", "manual"))
     options.append(("Exit", "exit"))
 
     return options, ssh_status, scp_status
@@ -236,6 +236,14 @@ def toggle_service(service_type):
     current_dir = os.path.dirname(os.path.abspath(__file__))
     script = None
 
+    if service_type == "manual":
+        from lib.manual_reader_main import start_manual_reader
+        try:
+            start_manual_reader()
+        except Exception as e:
+            print(f"Error starting manual reader: {e}")
+        return
+    
     if service_type == "ssh":
         script = os.path.join(script_dir, "EnableSSH.sh" if not check_service_status("ssh") else "DisableSSH.sh")
     elif service_type == "scp":
