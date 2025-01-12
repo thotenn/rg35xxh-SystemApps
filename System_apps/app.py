@@ -17,7 +17,7 @@ import lib.input as input
 current_window = "main"
 selected_position = 0
 scroll_offset = 0  # Track scroll position
-visible_items = 8  # Number of items visible at once
+visible_items = 7  # Number of items visible at once
 menu_len = 11
 app_name = "SystemApps"
 script_dir = os.path.join(current_dir, "scripts")
@@ -175,13 +175,17 @@ def move_cursor_dy(auto_move: bool = False):
     if auto_move or input.value == 1:  # Moving down
         if selected_position < menu_len - 1:
             selected_position += 1
-            # If selection moves beyond visible area, scroll down
             if selected_position - scroll_offset >= visible_items:
                 scroll_offset += 1
+        else:
+            selected_position = 0
+            scroll_offset = 0
     elif input.value == -1:  # Moving up
-        if selected_position > 0:
+        if selected_position == 0:
+            selected_position = menu_len - 1
+            scroll_offset = max(0, menu_len - visible_items)
+        else:
             selected_position -= 1
-            # If selection moves above visible area, scroll up
             if selected_position < scroll_offset:
                 scroll_offset -= 1
 
